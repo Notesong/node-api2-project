@@ -120,39 +120,52 @@ router.post("/", (req, res) => {
   }
 });
 
-// insert a comment for a post
+// insert a comment for a post (working)
 router.post("/:id/comments", (req, res) => {
   const { id } = req.params;
   const commentText = req.body;
   commentText.post_id = id;
 
+  // find the post to be sure it exists
   Posts.findById(id)
     .then(post => {
-      if (commentText.text) {
-        Posts.insertComment(commentText)
-          .then(comment => {
-            res.status(201).json({ success: true, comment });
-          })
-          .catch(err =>
-            res.status(500).json({
-              success: false,
-              message:
-                "There was an error while saving the comment to the database"
+      // if the post exists...
+      if (post.length > 0) {
+        // make sure there is data in the req body
+        if (commentText.text) {
+          // and then post the comment
+          Posts.insertComment(commentText)
+            .then(comment => {
+              res.status(201).json({ success: true, comment });
             })
-          );
+            .catch(err =>
+              res.status(500).json({
+                success: false,
+                message:
+                  "There was an error while saving the comment to the database"
+              })
+            );
+          // if there isn't data in the req body...
+        } else {
+          res.status(400).json({
+            success: false,
+            message: "Please provide text for the comment."
+          });
+        }
+        // if the post doesn't exist...
       } else {
-        res.status(400).json({
+        res.status(404).json({
           success: false,
-          message: "Please provide text for the comment."
+          message: "The post with the specified ID does not exist."
         });
       }
     })
-    .catch(err => {
-      res.status(404).json({
-        success: false,
-        message: "The post with the specified ID does not exist."
-      });
-    });
+    .catch(err =>
+      res.status(500).json({
+        message:
+          "There was an internal error while finding the post in the database"
+      })
+    );
 });
 
 ////////////////////////////////////////////////////////////////
