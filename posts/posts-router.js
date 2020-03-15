@@ -179,12 +179,26 @@ router.post("/:id/comments", (req, res) => {
 router.delete("/:id", (req, res) => {
   const { id } = req.params;
 
-  Posts.remove(id)
-    .then(result => {
-      if (result) {
-        res
-          .status(200)
-          .json({ success: true, message: "Post deleted successfully." });
+  // make sure the post exists
+  Posts.findById(id)
+    .then(post => {
+      // if the post exists...
+      if (post.length > 0) {
+        // set the post to deletedPost
+        const deletedPost = post;
+        // then remove the post
+        Posts.remove(id)
+          // and then return the deleted post to the user
+          .then(result => {
+            res.status(200).json({ success: true, deletedPost });
+          })
+          .catch(err => {
+            res.status(500).json({
+              success: false,
+              error: "There was an internal error while removing the post."
+            });
+          });
+        // if the post doesn't exist...
       } else {
         res.status(404).json({
           success: false,
@@ -195,7 +209,8 @@ router.delete("/:id", (req, res) => {
     .catch(err => {
       res.status(500).json({
         success: false,
-        error: "There was an internal error while removing the post."
+        error:
+          "There was an internal error while finding the id to remove the post."
       });
     });
 });
