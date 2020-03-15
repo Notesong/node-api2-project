@@ -11,12 +11,13 @@ const router = express.Router();
 router.get("/", (req, res) => {
   Posts.find()
     .then(posts => {
-      res.status(200).json(posts);
+      res.status(200).json({ success: true, posts });
     })
     .catch(err =>
       res.status(500).json({
+        success: false,
         message:
-          "There was an internal error while retrieving the messages from the database"
+          "There was an internal error while retrieving the messages from the database."
       })
     );
 });
@@ -28,30 +29,7 @@ router.get("/:id", (req, res) => {
   Posts.findById(id)
     .then(posts => {
       if (posts.length > 0) {
-        res.status(200).json(posts);
-      } else {
-        res.status(404).json({
-          success: false,
-          message: "The post with the specified ID does not exist."
-        });
-      }
-    })
-    .catch(err =>
-      res.status(500).json({
-        message:
-          "There was an internal error while retrieving the messages from the database"
-      })
-    );
-});
-
-// find all comments for a post (working)
-router.get("/:id/comments", (req, res) => {
-  const { id } = req.params;
-
-  Posts.findPostComments(id)
-    .then(posts => {
-      if (posts.length > 0) {
-        res.status(200).json(posts);
+        res.status(200).json({ success: true, posts });
       } else {
         res.status(404).json({
           success: false,
@@ -63,7 +41,31 @@ router.get("/:id/comments", (req, res) => {
       res.status(500).json({
         success: false,
         message:
-          "There was an internal error while retrieving the messages from the database"
+          "There was an internal error while retrieving the messages from the database."
+      })
+    );
+});
+
+// find all comments for a post (working)
+router.get("/:id/comments", (req, res) => {
+  const { id } = req.params;
+
+  Posts.findPostComments(id)
+    .then(posts => {
+      if (posts.length > 0) {
+        res.status(200).json({ success: true, posts });
+      } else {
+        res.status(404).json({
+          success: false,
+          message: "The post with the specified ID does not exist."
+        });
+      }
+    })
+    .catch(err =>
+      res.status(500).json({
+        success: false,
+        message:
+          "There was an internal error while retrieving the messages from the database."
       })
     );
 });
@@ -75,7 +77,7 @@ router.get("/:id/comments/:comment_id", (req, res) => {
   Posts.findCommentById(comment_id)
     .then(comment => {
       if (comment.length > 0 && comment[0].post_id === parseInt(id)) {
-        res.status(200).json(comment);
+        res.status(200).json({ success: true, comment });
       } else {
         res.status(404).json({
           success: false,
@@ -88,7 +90,7 @@ router.get("/:id/comments/:comment_id", (req, res) => {
       res.status(500).json({
         success: false,
         message:
-          "There was an internal error while retrieving the messages from the database"
+          "There was an internal error while retrieving the messages from the database."
       })
     );
 });
@@ -109,7 +111,7 @@ router.post("/", (req, res) => {
       .catch(err => {
         res.status(500).json({
           success: false,
-          message: "There was an error while saving the post to the database"
+          message: "There was an error while saving the post to the database."
         });
       });
   } else {
@@ -141,29 +143,30 @@ router.post("/:id/comments", (req, res) => {
             .catch(err =>
               res.status(500).json({
                 success: false,
-                message:
-                  "There was an error while saving the comment to the database"
+                error:
+                  "There was an error while saving the comment to the database."
               })
             );
           // if there isn't data in the req body...
         } else {
           res.status(400).json({
             success: false,
-            message: "Please provide text for the comment."
+            error: "Please provide text for the comment."
           });
         }
         // if the post doesn't exist...
       } else {
         res.status(404).json({
           success: false,
-          message: "The post with the specified ID does not exist."
+          error: "The post with the specified ID does not exist."
         });
       }
     })
     .catch(err =>
       res.status(500).json({
-        message:
-          "There was an internal error while finding the post in the database"
+        success: false,
+        error:
+          "There was an internal error while finding the post in the database."
       })
     );
 });
@@ -172,12 +175,77 @@ router.post("/:id/comments", (req, res) => {
 // handlers for DELETE
 //
 
-// delete a post
+// remove a post (working)
+router.delete("/:id", (req, res) => {
+  const { id } = req.params;
+
+  Posts.remove(id)
+    .then(result => {
+      if (result) {
+        res
+          .status(200)
+          .json({ success: true, message: "Post deleted successfully." });
+      } else {
+        res.status(404).json({
+          success: false,
+          error: "The post with the specified ID does not exist."
+        });
+      }
+    })
+    .catch(err => {
+      res.status(500).json({
+        success: false,
+        error: "There was an internal error while removing the post."
+      });
+    });
+});
 
 ////////////////////////////////////////////////////////////////
 // handlers for PUT
 //
 
-// update a post
+// update a post working
+router.put("/:id", (req, res) => {
+  const { id } = req.params;
+  const post = req.body;
+
+  // make sure there are a title and contents in the request body
+  if (post.title && post.contents) {
+    // if there are, find the post by id
+    Posts.findById(id)
+      .then(posts => {
+        // if the post is found...
+        if (posts.length > 0) {
+          Posts.update(id, post)
+            .then(result => {
+              res.status(200).json({ success: true });
+            })
+            .catch(err => {
+              res.status(500).json({
+                success: false,
+                error: "There was an internal error while updating the post."
+              });
+            });
+          // if the post isn't found...
+        } else {
+          res.status(404).json({
+            success: false,
+            error: "The post with the specified ID does not exist."
+          });
+        }
+      })
+      .catch(err => {
+        res.status(500).json({
+          success: false,
+          error: "There was an internal error while finding the post."
+        });
+      });
+  } else {
+    res.status(400).json({
+      success: false,
+      error: "Please provide a title and contents for the post."
+    });
+  }
+});
 
 module.exports = router;
