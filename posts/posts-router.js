@@ -218,7 +218,9 @@ router.put("/:id", (req, res) => {
         if (posts.length > 0) {
           Posts.update(id, post)
             .then(result => {
-              res.status(200).json({ success: true });
+              res
+                .status(200)
+                .json({ success: true, message: "Post updated successfully." });
             })
             .catch(err => {
               res.status(500).json({
