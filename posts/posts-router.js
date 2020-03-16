@@ -7,7 +7,7 @@ const router = express.Router();
 // handlers for GET
 //
 
-// find all posts (working)
+// find all posts
 router.get("/", (req, res) => {
   Posts.find()
     .then(posts => {
@@ -22,7 +22,7 @@ router.get("/", (req, res) => {
     );
 });
 
-// find post by id (working)
+// find post by id
 router.get("/:id", (req, res) => {
   const { id } = req.params;
 
@@ -46,7 +46,7 @@ router.get("/:id", (req, res) => {
     );
 });
 
-// find all comments for a post (working)
+// find all comments for a post
 router.get("/:id/comments", (req, res) => {
   const { id } = req.params;
 
@@ -70,7 +70,7 @@ router.get("/:id/comments", (req, res) => {
     );
 });
 
-// find a comment for a post by id (working)
+// find a comment for a post by id
 router.get("/:id/comments/:comment_id", (req, res) => {
   const { id, comment_id } = req.params;
 
@@ -99,7 +99,7 @@ router.get("/:id/comments/:comment_id", (req, res) => {
 // handlers for POST
 //
 
-// insert a post (working)
+// insert a post
 router.post("/", (req, res) => {
   const postInfo = req.body;
 
@@ -122,7 +122,7 @@ router.post("/", (req, res) => {
   }
 });
 
-// insert a comment for a post (working)
+// insert a comment for a post
 router.post("/:id/comments", (req, res) => {
   const { id } = req.params;
   const commentText = req.body;
@@ -175,7 +175,7 @@ router.post("/:id/comments", (req, res) => {
 // handlers for DELETE
 //
 
-// remove a post (working)
+// remove a post
 router.delete("/:id", (req, res) => {
   const { id } = req.params;
 
@@ -219,7 +219,7 @@ router.delete("/:id", (req, res) => {
 // handlers for PUT
 //
 
-// update a post working
+// update a post
 router.put("/:id", (req, res) => {
   const { id } = req.params;
   const post = req.body;
