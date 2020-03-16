@@ -231,11 +231,22 @@ router.put("/:id", (req, res) => {
       .then(posts => {
         // if the post is found...
         if (posts.length > 0) {
+          // update the post
           Posts.update(id, post)
             .then(result => {
-              res
-                .status(200)
-                .json({ success: true, message: "Post updated successfully." });
+              console.log(result);
+              // then get the newly updated post and return it
+              Posts.findById(id)
+                .then(post => {
+                  res.status(200).json({ success: true, post });
+                })
+                .catch(err => {
+                  res.status(500).json({
+                    success: false,
+                    error:
+                      "There was an internal error while returning the post."
+                  });
+                });
             })
             .catch(err => {
               res.status(500).json({
